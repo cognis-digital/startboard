@@ -1,0 +1,50 @@
+{
+  "title": "Analyst Start Board",
+  "subtitle": "Daily links, working notes, and service status — all in one static page.",
+  "theme": "dark",
+  "groups": [
+    {
+      "title": "Markets",
+      "links": [
+        {
+          "label": "TradingView",
+          "url": "https://www.tradingview.com",
+          "description": "Charts & watchlists"
+        },
+        {
+          "label": "SEC EDGAR",
+          "url": "https://www.sec.gov/edgar/searchedgar/companysearch",
+          "description": "Filings search"
+        }
+      ]
+    },
+    {
+      "title": "Research",
+      "links": [
+        {
+          "label": "Wikipedia",
+          "url": "https://www.wikipedia.org"
+        },
+        {
+          "label": "arXiv",
+          "url": "https://arxiv.org",
+          "description": "Preprints"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "title": "Today",
+      "body": "- Review overnight catalysts\n- Reconcile positions to broker\n- Update watchlist"
+    }
+  ],
+  "status": [
+    {
+      "name": "Example Service",
+      "url": "https://example.com",
+      "timeoutMs": 5000,
+      "okStatuses": [200]
+    }
+  ]
+}

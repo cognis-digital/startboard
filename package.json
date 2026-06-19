@@ -1,0 +1,35 @@
+{
+  "name": "@cognis-digital/startboard",
+  "version": "1.0.0",
+  "description": "Self-hostable start-page / dashboard generator for analysts: turn a JSON config into a self-contained static HTML start board with bookmark groups, notes, and a pluggable status panel.",
+  "type": "module",
+  "bin": {
+    "startboard": "bin/startboard.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "examples",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "startpage",
+    "dashboard",
+    "bookmarks",
+    "static-site",
+    "cli",
+    "osint",
+    "analyst"
+  ],
+  "author": "Cognis Digital",
+  "license": "LicenseRef-COCL-1.0"
+}
