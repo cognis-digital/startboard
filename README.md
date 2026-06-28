@@ -13,6 +13,58 @@ anywhere (local disk, S3, a static host) and open it.
 
 License: COCL 1.0. Maintained by **Cognis Digital**.
 
+
+<!-- cognis:example:start -->
+## 🔎 Example output
+
+**Sample result format** _(illustrative values — run on your own data for real findings):_
+
+```
+{
+  "boards": [
+    {
+      "id": "1234567890",
+      "name": "My Awesome Startboard",
+      "description": "This is my personal startboard for tracking projects and tasks.",
+      "columns": [
+        {
+          "id": "column-1",
+          "name": "To-Do",
+          "cards": [
+            {
+              "id": "card-1",
+              "title": "Finish project proposal",
+              "description": "",
+              "status": "todo"
+            },
+            {
+              "id": "card-2",
+              "title": "Meet with team",
+              "description": "",
+              "status": "todo"
+            }
+          ]
+        },
+        {
+          "id": "column-2",
+          "name": "In Progress",
+          "cards": [
+            {
+              "id": "card-3",
+              "title": "Start coding",
+              "description": "",
+              "status": "in_progress"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+<!-- cognis:example:end -->
+
 ## Install
 
 Requires Node.js 20 or newer.
