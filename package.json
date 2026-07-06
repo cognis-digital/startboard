@@ -13,10 +13,13 @@
     "bin",
     "src",
     "examples",
+    "docs",
     "README.md"
   ],
   "scripts": {
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "demo": "sh demos/run_all.sh",
+    "validate:example": "node bin/startboard.js validate examples/config.json"
   },
   "engines": {
     "node": ">=20"

@@ -4,75 +4,47 @@ A self-hostable **start-page / dashboard generator** for analysts. Point it at a
 small JSON config and it produces a single, self-contained static HTML start
 board — bookmark groups, working notes, and a service-status panel — with **no
 external assets, scripts, stylesheets, fonts, or images**. Drop the file
-anywhere (local disk, S3, a static host) and open it.
+anywhere (local disk, S3, an internal share) and open it. It works offline,
+survives a CDN outage, and renders under a strict Content-Security-Policy.
 
-- Zero runtime dependencies. Plain Node ESM.
-- Self-contained output: inline CSS only, nothing fetched off-document.
-- Pluggable, injectable status checks — testable fully offline.
-- A `validate` command that exits non-zero, ready as a CI gate.
+- **Zero runtime dependencies.** Plain Node ESM, standard library only.
+- **Self-contained output:** inline CSS, nothing fetched off-document. Icons are
+  emoji or inline-SVG `data:` URIs — never a remote favicon.
+- **CSP-friendly by default:** the default build emits *zero* JavaScript and no
+  inline event handlers. Interactivity (collapsible groups, tabbed boards) is
+  CSS-only. An opt-in `--interactive` flag adds one small inline search script.
+- **Pluggable, injectable status checks** (HTTP + TCP) — the whole probe
+  pipeline is unit-tested offline with fakes and never hits the network in CI.
+- **A `validate` command that exits non-zero** — ready as a CI gate.
 
 License: COCL 1.0. Maintained by **Cognis Digital**.
 
+## Why
 
-<!-- cognis:example:start -->
-## 🔎 Example output
-
-**Sample result format** _(illustrative values — run on your own data for real findings):_
-
-```
-{
-  "boards": [
-    {
-      "id": "1234567890",
-      "name": "My Awesome Startboard",
-      "description": "This is my personal startboard for tracking projects and tasks.",
-      "columns": [
-        {
-          "id": "column-1",
-          "name": "To-Do",
-          "cards": [
-            {
-              "id": "card-1",
-              "title": "Finish project proposal",
-              "description": "",
-              "status": "todo"
-            },
-            {
-              "id": "card-2",
-              "title": "Meet with team",
-              "description": "",
-              "status": "todo"
-            }
-          ]
-        },
-        {
-          "id": "column-2",
-          "name": "In Progress",
-          "cards": [
-            {
-              "id": "card-3",
-              "title": "Start coding",
-              "description": "",
-              "status": "in_progress"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-<!-- cognis:example:end -->
+Dashboard start-pages usually pull favicons, web fonts, and analytics from a
+dozen third parties — which means they leak your bookmarks to those hosts, break
+on a flaky network, and can't live behind an air-gapped or strict-CSP boundary.
+startboard produces one HTML file that references *nothing but the links you
+typed*. What you ship is auditable: the test suite proves there are no external
+resource loads.
 
 ## Install
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer (CI runs Node 22).
 
 ```sh
 # from a clone
-npm install        # no runtime deps; installs nothing but sets up scripts
+npm install        # no runtime deps; just registers scripts
 npm link           # optional: expose the `startboard` bin globally
+```
+
+Or use the platform installers:
+
+```sh
+sh install.sh          # macOS / Linux (npm link, else ~/.local/bin shim)
+```
+```powershell
+./install.ps1          # Windows (npm link, else %LOCALAPPDATA%\startboard\bin shim)
 ```
 
 Or run the binary directly without installing:
@@ -81,18 +53,19 @@ Or run the binary directly without installing:
 node bin/startboard.js help
 ```
 
+Docker:
+
+```sh
+docker build -t startboard .
+docker run --rm -v "$PWD:/work" startboard build config.json -o board.html
+```
+
 ## Quick start
 
 ```sh
-# 1. scaffold a config
-startboard new -o config.json
-
-# 2. (optional) edit config.json, then validate it
-startboard validate config.json
-
-# 3. generate a self-contained start board
-startboard build config.json -o board.html
-
+startboard new -o config.json          # 1. scaffold a starter config
+startboard validate config.json        # 2. validate it (non-zero exit on error)
+startboard build config.json -o board.html   # 3. generate the board
 # 4. open board.html in any browser
 ```
 
@@ -100,108 +73,171 @@ startboard build config.json -o board.html
 
 | Command | Description |
 | --- | --- |
-| `startboard build <config.json> [-o board.html]` | Generate self-contained HTML. Writes to stdout if `-o` is omitted. |
+| `startboard build <config.json> [options]` | Generate self-contained HTML. Writes to stdout if `-o` is omitted. |
 | `startboard validate <config.json>` | Validate a config. Exits non-zero on any error — use as a CI gate. |
-| `startboard new [-o config.json]` | Scaffold a starter config. Writes to stdout if `-o` is omitted. |
-| `startboard check <config.json>` | The only networked command. Probes each status target and prints UP/DOWN/ERROR. Exits non-zero if any target is not up. |
+| `startboard new [-o config.json]` | Scaffold a starter config. |
+| `startboard check <config.json> [--json]` | The only networked command. Probes each status target (HTTP/TCP) and prints UP/DOWN/ERROR. Exits non-zero if any target is not up. |
 | `startboard help` | Show usage. |
 
-> `build` and `validate` are fully offline. Only `check` touches the network.
+**Build options:** `-o/--out <file>`, `--interactive` (add inline search),
+`--theme <name>` (`slate`/`terminal`/`amber`/`ocean`/`light`/`dark`),
+`--css <file>` (inject validated inline CSS), `--check` (probe + embed live
+status), `--concurrency <n>`.
 
-## Config format
+> `build` and `validate` are fully offline. Only `check` (and `build --check`)
+> touch the network.
 
-```jsonc
-{
-  "title": "Analyst Start Board",        // required, non-empty
-  "subtitle": "Daily links & status",    // optional
-  "theme": "dark",                        // optional: "light" | "dark"
+## What it generates
 
-  "groups": [                             // optional bookmark groups
-    {
-      "title": "Markets",
-      "links": [
-        { "label": "TradingView", "url": "https://www.tradingview.com", "description": "Charts" }
-      ]
-    }
-  ],
+- **Bookmark groups** with optional emoji or inline-SVG icons, per-item ordering,
+  and CSS-only **collapsible** sections (`<details>`).
+- **Note panels** rendered from a safe markdown-ish subset (headings, bold,
+  italic, code, fenced blocks, lists, blockquotes, rules, http(s) links) — all
+  escape-first, so raw HTML in a note stays inert.
+- **A status panel** listing HTTP/TCP targets. Static files can't self-refresh,
+  so `build --check` embeds a point-in-time result plus a "Last checked" stamp.
+- **Multiple boards** as a CSS-only **tabbed** layout (radio-button technique),
+  plus four built-in themes with automatic `prefers-color-scheme` dark mode.
+- **`include`** to compose a config from shared fragments (arrays merge, scalars
+  override; cycles rejected).
 
-  "notes": [                              // optional note widgets
-    { "title": "Today", "body": "Free-form text.\nNewlines are preserved." }
-  ],
+Config reference: [`docs/CONFIG.md`](docs/CONFIG.md). JSON Schema (draft-07):
+[`docs/startboard.schema.json`](docs/startboard.schema.json). Design and
+guarantees: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-  "status": [                             // optional status targets
-    {
-      "name": "Example Service",
-      "url": "https://example.com",
-      "timeoutMs": 5000,                  // optional, default 5000
-      "okStatuses": [200]                 // optional; default is any 2xx/3xx
-    }
-  ]
-}
+## Honest results (from an actual run)
+
+Ran on Node v24.11.1 against the shipped examples:
+
+```
+$ startboard validate examples/config.json
+ok: "examples/config.json" is a valid startboard config
+
+$ startboard build examples/config.json -o board.html
+wrote board.html (15249 bytes)
 ```
 
-Validation rules (enforced by `validate` and before `build`):
+Generated output sizes (a whole dashboard in one small file):
 
-- `title` is required and non-empty.
-- All `url` values (links and status targets) must be `http`/`https`.
-  `javascript:`, `data:`, and `file:` URLs are rejected — output stays safe.
-- `theme`, when present, must be `light` or `dark`.
-- `links` require `label` + `url`; `notes` require `title` + `body`;
-  `status` targets require `name` + `url`.
+| Example | Output size |
+| --- | --- |
+| `examples/minimal.json`  | 11,541 bytes |
+| `examples/config.json` (analyst/OSINT) | 15,249 bytes |
+| `examples/homelab.json` (tabbed, TCP probes, custom CSS) | 15,834 bytes |
 
-A working example lives in [`examples/config.json`](examples/config.json).
+Self-containment assertion on `board.html`:
+
+```
+$ grep -ciE '<script|<link|<img[^>]+src="https?:' board.html
+0
+```
+
+Zero external stylesheets, scripts, or remote images. The only http(s) strings
+in the file are the bookmark/status URLs from the config itself.
+
+Test suite (`npm test`):
+
+```
+ℹ tests 91
+ℹ pass 91
+ℹ fail 0
+```
+
+Demo suite (`sh demos/run_all.sh`) builds every example, asserts
+self-containment, exercises `--interactive`, and runs a hermetic local HTTP/TCP
+`check` — it exits 0:
+
+```
+[4] check with a local probe (hermetic)
+    [UP] local HTTP (127.0.0.1:64147) — 3ms
+    [ERROR] dead port (127.0.0.1:1) — 2ms connect ECONNREFUSED 127.0.0.1:1
+ALL DEMOS PASSED
+```
+
+## Self-contained guarantee
+
+The generated HTML embeds all styling inline and references no remote resources.
+The test suite asserts the output contains no `<link>`, no external
+`<script src>`, no remote `<img>`, no `@import`, and no CSS `url(http…)` — and
+that the only off-document references present are the bookmark/status URLs you
+put in the config. Icons are emoji text or inline-SVG `data:` URIs, which embed
+their bytes in the document (nothing is fetched). See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#self-containment-guarantee).
+
+### CSP posture
+
+The default build renders correctly under, e.g.,
+`default-src 'none'; style-src 'unsafe-inline'; img-src data:` — no script, no
+inline handlers. `--interactive` adds one inline `<script>` (search filter) and
+then needs `script-src 'unsafe-inline'`; omit the flag for a strict-CSP artifact.
+
+## Accessibility
+
+Landmarks (`header`/`main`/`footer`), a skip-to-content link, `role="region"`
+with `aria-label` on every card, `aria-hidden` decorative icons, a
+`role="tablist"`/`tabpanel` structure for multi-board layouts, and a print
+stylesheet that expands all groups/tabs. Themes ship light + dark palettes tuned
+for contrast.
 
 ## Status checks are pluggable
 
-`check` is the only path that uses the network. The fetcher is abstracted
-behind an injectable function, so the entire check pipeline is unit-tested
-offline with a fake fetcher and never makes a real request in tests.
+`check` is the only path that uses the network. Both probers are injectable, so
+the entire pipeline is unit-tested offline with fakes:
 
 ```js
 import { checkAll } from "@cognis-digital/startboard";
 
-const fakeFetcher = async (url) => ({ status: 200 });
-const results = await checkAll(config, fakeFetcher); // no network
+const results = await checkAll(config, {
+  fetcher: async (url) => ({ status: 200 }),   // fake HTTP prober
+  tcp: async () => ({ connected: true }),       // fake TCP prober
+  concurrency: 6,
+});
 ```
 
-The default fetcher uses the global `fetch` with an `AbortController` timeout.
-
-## Self-contained guarantee
-
-The generated HTML embeds all styling inline and references no remote
-resources. The test suite asserts the output contains no `<script>`, `<link>`,
-or `<img>` tags, no `@import`, and no CSS `url()` — and that the only off-document
-references present are the bookmark/status URLs you put in the config.
+The defaults use global `fetch` (with an `AbortController` timeout) and
+`net.Socket`.
 
 ## Library API
 
 ```js
 import {
-  validateConfig,   // (config) => string[]  (empty = valid)
-  isSafeUrl,         // (url) => boolean
-  buildHtml,         // (config) => string    (full HTML document)
-  escapeHtml,        // (str) => string
-  checkAll,          // (config, fetcher?) => Promise<CheckResult[]>
-  checkTarget,       // (target, fetcher) => Promise<CheckResult>
-  scaffoldConfig,    // () => Config
-  scaffoldConfigJson // () => string
+  validateConfig, isSafeUrl, isHostPort, isSafeCss,  // validation
+  buildHtml, escapeHtml, statusKey,                   // generation
+  renderMarkdown,                                     // safe markdown-ish
+  renderIcon, builtinIconNames, isSafeInlineSvg,      // icons
+  THEMES, themeNames, resolveTheme,                   // theming
+  loadConfig, mergeConfig,                            // config + includes
+  checkAll, checkTarget, defaultFetcher, defaultTcpProbe,  // status
+  scaffoldConfig, scaffoldConfigJson,                 // scaffolding
 } from "@cognis-digital/startboard";
 ```
 
-## Development & tests
-
-Tests use the built-in Node test runner (`node:test`) — no build step, no
-test framework to install.
+## Development
 
 ```sh
-npm test
-# or directly:
-node --test "test/*.test.js"
+npm test                 # node:test runner; no framework to install
+make demo                # end-to-end demo (also the CI smoke test)
+make examples            # build every example into ./dist
+make typecheck           # tsc --checkJs if TypeScript is installed (else skipped)
 ```
 
-CI runs on Ubuntu with Node 20 (`.github/workflows/ci.yml`): it validates the
-example config (the CI gate) and runs the full test suite.
+Sources carry `// @ts-check` + JSDoc types; `make typecheck` runs
+`tsc --checkJs --noEmit` when TypeScript is available (it is not a runtime
+dependency, so the target no-ops cleanly if `tsc` is absent).
+
+## Cross-platform
+
+Pure Node standard library, no shell-isms in the JS: paths go through
+`node:path`, temp dirs through `node:os`, sockets through `node:net`. Tested on
+Windows; the install scripts cover macOS/Linux (`install.sh`) and Windows
+(`install.ps1`). CI runs on `ubuntu-latest` with Node 22.
+
+## CI
+
+`.github/workflows/ci.yml` (Ubuntu, Node 22): installs, validates every example
+config (the `examples/config.json` gate plus the rest), runs the full test
+suite, asserts self-containment of a fresh build, and runs the demo smoke test.
 
 ## License
 
-COCL 1.0.
+COCL 1.0. See [`LICENSE`](LICENSE).

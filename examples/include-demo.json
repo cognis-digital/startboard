@@ -1,0 +1,15 @@
+{
+  "include": ["./common.json"],
+  "title": "Team Board",
+  "subtitle": "Extends examples/common.json via `include`.",
+  "groups": [
+    {
+      "title": "Team",
+      "icon": "📋",
+      "links": [
+        { "label": "Board", "url": "https://board.example.com" },
+        { "label": "Repo", "url": "https://github.com/cognis-digital/startboard" }
+      ]
+    }
+  ]
+}

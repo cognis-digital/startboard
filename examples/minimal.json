@@ -1,0 +1,12 @@
+{
+  "title": "Minimal Board",
+  "groups": [
+    {
+      "title": "Links",
+      "links": [
+        { "label": "Search", "url": "https://duckduckgo.com" },
+        { "label": "Docs", "url": "https://developer.mozilla.org" }
+      ]
+    }
+  ]
+}

@@ -1,50 +1,43 @@
 {
-  "title": "Analyst Start Board",
-  "subtitle": "Daily links, working notes, and service status — all in one static page.",
-  "theme": "dark",
+  "title": "Analyst OSINT Board",
+  "subtitle": "Daily links, working notes, and service status — one self-contained static page.",
+  "theme": "slate",
   "groups": [
     {
       "title": "Markets",
+      "icon": "glyph:chart",
       "links": [
-        {
-          "label": "TradingView",
-          "url": "https://www.tradingview.com",
-          "description": "Charts & watchlists"
-        },
-        {
-          "label": "SEC EDGAR",
-          "url": "https://www.sec.gov/edgar/searchedgar/companysearch",
-          "description": "Filings search"
-        }
+        { "label": "TradingView", "url": "https://www.tradingview.com", "description": "Charts & watchlists" },
+        { "label": "SEC EDGAR", "url": "https://www.sec.gov/edgar/searchedgar/companysearch", "description": "Filings search" },
+        { "label": "FRED", "url": "https://fred.stlouisfed.org", "description": "Macro series" }
       ]
     },
     {
-      "title": "Research",
+      "title": "OSINT",
+      "icon": "🔎",
       "links": [
-        {
-          "label": "Wikipedia",
-          "url": "https://www.wikipedia.org"
-        },
-        {
-          "label": "arXiv",
-          "url": "https://arxiv.org",
-          "description": "Preprints"
-        }
+        { "label": "Shodan", "url": "https://www.shodan.io", "description": "Host & service search" },
+        { "label": "crt.sh", "url": "https://crt.sh", "description": "Certificate transparency" },
+        { "label": "Wayback Machine", "url": "https://web.archive.org", "description": "Historical snapshots" }
+      ]
+    },
+    {
+      "title": "Reference",
+      "icon": "glyph:book",
+      "collapsed": true,
+      "links": [
+        { "label": "Wikipedia", "url": "https://www.wikipedia.org" },
+        { "label": "arXiv", "url": "https://arxiv.org", "description": "Preprints" }
       ]
     }
   ],
   "notes": [
     {
       "title": "Today",
-      "body": "- Review overnight catalysts\n- Reconcile positions to broker\n- Update watchlist"
+      "body": "## Checklist\n\n- Review overnight catalysts\n- Reconcile positions to broker\n- Update watchlist\n\n> Rebuild the board after editing: `startboard build config.json -o board.html`\n\nSee the [config reference](https://github.com/cognis-digital/startboard) for options."
     }
   ],
   "status": [
-    {
-      "name": "Example Service",
-      "url": "https://example.com",
-      "timeoutMs": 5000,
-      "okStatuses": [200]
-    }
+    { "name": "Example Service", "url": "https://example.com", "timeoutMs": 5000, "okStatuses": [200] }
   ]
 }
