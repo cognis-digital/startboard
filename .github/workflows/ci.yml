@@ -27,5 +27,23 @@ jobs:
       - name: Validate example config (CI gate)
         run: node bin/startboard.js validate examples/config.json
 
+      - name: Validate all example configs
+        run: |
+          for f in examples/*.json; do
+            echo "validating $f"
+            node bin/startboard.js validate "$f"
+          done
+
       - name: Run tests
         run: npm test
+
+      - name: Self-containment assertion (default build has no external refs)
+        run: |
+          node bin/startboard.js build examples/config.json -o /tmp/board.html
+          if grep -qiE '<script|<link|<img[^>]+src="https?:' /tmp/board.html; then
+            echo "FAIL: generated board contains an external reference"; exit 1
+          fi
+          echo "OK: board.html is self-contained (no external script/link/remote-img)"
+
+      - name: Demo smoke test
+        run: bash demos/run_all.sh

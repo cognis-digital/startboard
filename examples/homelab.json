@@ -1,0 +1,46 @@
+{
+  "title": "Homelab",
+  "subtitle": "Self-hosted services and infrastructure at a glance.",
+  "theme": "terminal",
+  "boards": [
+    {
+      "title": "Apps",
+      "icon": "glyph:server",
+      "groups": [
+        {
+          "title": "Media",
+          "icon": "🎬",
+          "links": [
+            { "label": "Jellyfin", "url": "https://jellyfin.example.lan", "description": "Media server" },
+            { "label": "Navidrome", "url": "https://music.example.lan", "description": "Music streaming" }
+          ]
+        },
+        {
+          "title": "Ops",
+          "icon": "glyph:terminal",
+          "links": [
+            { "label": "Grafana", "url": "https://grafana.example.lan", "description": "Dashboards" },
+            { "label": "Portainer", "url": "https://portainer.example.lan", "description": "Containers" }
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "title": "Runbook",
+          "body": "### Restart a stack\n\n```\ndocker compose -f /srv/stack.yml up -d\n```\n\n- Back up volumes weekly\n- Renew certs before expiry"
+        }
+      ]
+    },
+    {
+      "title": "Infra",
+      "icon": "glyph:shield",
+      "status": [
+        { "name": "Gateway (HTTP)", "url": "https://gateway.example.lan", "okStatuses": [200, 401] },
+        { "name": "Postgres (TCP)", "type": "tcp", "url": "db.example.lan:5432", "timeoutMs": 2000 },
+        { "name": "Redis (TCP)", "type": "tcp", "url": "cache.example.lan:6379", "timeoutMs": 2000 },
+        { "name": "Prometheus", "url": "https://prom.example.lan", "timeoutMs": 3000 }
+      ]
+    }
+  ],
+  "css": ".card{border-radius:6px}"
+}

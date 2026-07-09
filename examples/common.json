@@ -1,0 +1,14 @@
+{
+  "title": "Shared Links",
+  "theme": "ocean",
+  "groups": [
+    {
+      "title": "Shared",
+      "icon": "glyph:globe",
+      "links": [
+        { "label": "Status Page", "url": "https://status.example.com" },
+        { "label": "Wiki", "url": "https://wiki.example.com" }
+      ]
+    }
+  ]
+}
