@@ -46,4 +46,4 @@ jobs:
           echo "OK: board.html is self-contained (no external script/link/remote-img)"
 
       - name: Demo smoke test
-        run: sh demos/run_all.sh
+        run: bash demos/run_all.sh
